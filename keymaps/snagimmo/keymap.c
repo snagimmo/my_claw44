@@ -170,13 +170,11 @@ void render_logo(void) {
 
 // The function to render and maintain the CapsLock state on OLED
 bool led_update_user(led_t led_state) {
-    // TODO: caps_state initialization may be ought to be moved here
     if (caps_state != led_state.caps_lock) {
         caps_state = led_state.caps_lock;
         render_caps_state();
     }
     // TODO: implement led_state.kana later
-    // TODO: kana_state initialization may be ought to be moved here
     /* if (kana_state != led_state.kana) { */
     /*     kana_state = led_state.kana; */
     /*     render_kana_state(); */
@@ -222,7 +220,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static uint8_t checker_numpad = 0;
     static uint8_t checker_caps = 0;
     uint8_t temp_mod = get_mods();
-    /* temp_mod = get_mods(); */
     switch (keycode) {
         // Customized keycodes for CapsLock
         case KC_CAPS:
