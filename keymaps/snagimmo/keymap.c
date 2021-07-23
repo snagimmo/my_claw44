@@ -97,9 +97,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #ifdef OLED_DRIVER_ENABLE
 
-static uint8_t rotation_state, buf_blocks, skipped_pixel;
-static uint8_t caps_state  = 0;
-static uint8_t kana_state  = 0;
+uint8_t rotation_state, buf_blocks, skipped_pixel;
+uint8_t caps_state  = 0;
+uint8_t kana_state  = 0;
 
 void switch_rotation(bool on) {
     if (on) {
@@ -174,11 +174,6 @@ bool led_update_user(led_t led_state) {
         caps_state = led_state.caps_lock;
         render_caps_state();
     }
-    // TODO: implement led_state.kana later
-    /* if (kana_state != led_state.kana) { */
-    /*     kana_state = led_state.kana; */
-    /*     render_kana_state(); */
-    /* } */
     return false;
 }
 // _kb() is a hook for _user()
