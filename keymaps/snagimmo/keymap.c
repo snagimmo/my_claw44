@@ -42,8 +42,6 @@ enum custom_keycodes {
 #define KC_TO3 TO(_NUMPAD)         // Layer-Move keycode for _NUMPAD(layer3)
 #define KC_LT1 LT(_RAISE, KC_NO)   // Layer-Tap keycode for _RAISE (layer1)
 #define KC_LT2 LT(_LOWER, KC_CAPS) // Layer-Tap keycode for _LOWER (layer2)
-#define EX_FEN C(A(S(KC_INS)))     // execute launcher(fenrir)
-#define EX_NYF G(KC_N)             // execute explorer(NyanFi)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_QWERTY] = LAYOUT( \
@@ -62,9 +60,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //,--------+--------+--------+--------+--------+--------.   ,--------+--------+--------+--------+--------+--------.
         KC_GRV , KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,     KC_CIRC, KC_AMPR, KC_ASTR, KC_MINS, KC_EQL , KC_DEL ,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
-        KC_APP , XXXXXXX, KC_LCBR, KC_LPRN, KC_LBRC, XXXXXXX,     KC_LEFT, KC_DOWN, KC_UP  , KC_RGHT, EX_FEN , KC_BSLS,
+        KC_APP , XXXXXXX, KC_LCBR, KC_LPRN, KC_LBRC, XXXXXXX,     KC_LEFT, KC_DOWN, KC_UP  , KC_RGHT, XXXXXXX, KC_BSLS,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
-        _______, XXXXXXX, KC_RCBR, KC_RPRN, KC_RBRC, XXXXXXX,     KC_HOME, KC_PGDN, KC_PGUP, KC_END , EX_NYF , _______,
+        _______, XXXXXXX, KC_RCBR, KC_RPRN, KC_RBRC, XXXXXXX,     KC_HOME, KC_PGDN, KC_PGUP, KC_END , XXXXXXX, _______,
     //`--------+--------+--------+--------+--------+--------/   \--------+--------+--------+--------+--------+--------'
                           MY_CAPS, _______, _______, KC_LGUI,     XXXXXXX, _______, _______, XXXXXXX
     //                  `--------+--------+--------+--------'   `--------+--------+--------+--------'
@@ -264,12 +262,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_INS: // Insert
         case KC_PAUS: // Pause
         case KC_PSCR: // Print Screen
-        case EX_NYF:
             if (record->event.pressed) { checker_caps = 1; }
-            break;
-        case EX_FEN:
-            // Always 'eisu' when you execute launcher
-            if (record->event.pressed) { kana_state = 0; }
             break;
     }
     return true;
@@ -281,7 +274,7 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
         case KC_LT2:
             return 10;
         default:
-            return TAPPING_TERM; // 150ms
+            return TAPPING_TERM; // 50ms
     }
 }
 
