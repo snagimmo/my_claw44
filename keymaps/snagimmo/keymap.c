@@ -42,6 +42,8 @@ enum custom_keycodes {
 #define KC_TO3 TO(_NUMPAD)         // Layer-Move keycode for _NUMPAD(layer3)
 #define KC_LT1 LT(_RAISE, KC_NO)   // Layer-Tap keycode for _RAISE (layer1)
 #define KC_LT2 LT(_LOWER, KC_CAPS) // Layer-Tap keycode for _LOWER (layer2)
+#define EX_FEN C(A(S(KC_INS)))     // execute launcher(fenrir)
+#define EX_NYF G(KC_N)             // execute explorer(NyanFi)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_QWERTY] = LAYOUT( \
@@ -60,9 +62,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //,--------+--------+--------+--------+--------+--------.   ,--------+--------+--------+--------+--------+--------.
         KC_GRV , KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,     KC_CIRC, KC_AMPR, KC_ASTR, KC_MINS, KC_EQL , KC_DEL ,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
-        KC_APP , XXXXXXX, KC_LCBR, KC_LPRN, KC_LBRC, XXXXXXX,     KC_LEFT, KC_DOWN, KC_UP  , KC_RGHT, XXXXXXX, KC_BSLS,
+        KC_APP , XXXXXXX, KC_LCBR, KC_LPRN, KC_LBRC, XXXXXXX,     KC_LEFT, KC_DOWN, KC_UP  , KC_RGHT, EX_FEN , KC_BSLS,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
-        _______, XXXXXXX, KC_RCBR, KC_RPRN, KC_RBRC, XXXXXXX,     KC_HOME, KC_PGDN, KC_PGUP, KC_END , XXXXXXX, _______,
+        _______, XXXXXXX, KC_RCBR, KC_RPRN, KC_RBRC, XXXXXXX,     KC_HOME, KC_PGDN, KC_PGUP, KC_END , EX_NYF , _______,
     //`--------+--------+--------+--------+--------+--------/   \--------+--------+--------+--------+--------+--------'
                           MY_CAPS, _______, _______, KC_LGUI,     XXXXXXX, _______, _______, XXXXXXX
     //                  `--------+--------+--------+--------'   `--------+--------+--------+--------'
@@ -95,9 +97,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #ifdef OLED_DRIVER_ENABLE
 
-static uint8_t rotation_state, buf_blocks, skipped_pixel;
-static uint8_t caps_state  = 0;
-static uint8_t kana_state  = 0;
+uint8_t rotation_state, buf_blocks, skipped_pixel;
+uint8_t caps_state  = 0;
+uint8_t kana_state  = 0;
 
 void switch_rotation(bool on) {
     if (on) {
@@ -168,17 +170,10 @@ void render_logo(void) {
 
 // The function to render and maintain the CapsLock state on OLED
 bool led_update_user(led_t led_state) {
-    // TODO: caps_state initialization may be ought to be moved here
     if (caps_state != led_state.caps_lock) {
         caps_state = led_state.caps_lock;
         render_caps_state();
     }
-    // TODO: implement led_state.kana later
-    // TODO: kana_state initialization may be ought to be moved here
-    /* if (kana_state != led_state.kana) { */
-    /*     kana_state = led_state.kana; */
-    /*     render_kana_state(); */
-    /* } */
     return false;
 }
 // _kb() is a hook for _user()
@@ -220,7 +215,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     static uint8_t checker_numpad = 0;
     static uint8_t checker_caps = 0;
     uint8_t temp_mod = get_mods();
-    /* temp_mod = get_mods(); */
     switch (keycode) {
         // Customized keycodes for CapsLock
         case KC_CAPS:
@@ -270,7 +264,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_INS: // Insert
         case KC_PAUS: // Pause
         case KC_PSCR: // Print Screen
+        case EX_NYF:
             if (record->event.pressed) { checker_caps = 1; }
+            break;
+        case EX_FEN:
+            // Always 'eisu' when you execute launcher
+            if (record->event.pressed) { kana_state = 0; }
             break;
     }
     return true;
