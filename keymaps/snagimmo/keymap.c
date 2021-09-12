@@ -15,9 +15,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include QMK_KEYBOARD_H
 #include <stdio.h>
+
 #include "lib/glcdfont.c"
 #include "lib/layers.c"
 #include "font_block.h"
+
+#include "game/game.h"
+
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
@@ -34,7 +38,8 @@ enum layer_number {
 enum custom_keycodes {
     MY_CAPS = SAFE_RANGE,
     MY_KANA,
-    MY_LT2
+    MY_LT2,
+    GM_INV
 };
 
 #define KC_TO0 TO(_QWERTY)         // Layer-Move keycode for _QWERTY(layer0)
@@ -43,6 +48,8 @@ enum custom_keycodes {
 #define KC_TO3 TO(_NUMPAD)         // Layer-Move keycode for _NUMPAD(layer3)
 #define KC_LT1 LT(_RAISE, KC_NO)   // Layer-Tap keycode for _RAISE (layer1)
 #define KC_LT2 LT(_LOWER, KC_CAPS) // Layer-Tap keycode for _LOWER (layer2)
+#define EX_FEN C(A(S(KC_INS)))     // execute launcher(fenrir)
+#define EX_NYF G(KC_N)             // execute explorer(NyanFi)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [_QWERTY] = LAYOUT( \
@@ -61,9 +68,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //,--------+--------+--------+--------+--------+--------.   ,--------+--------+--------+--------+--------+--------.
         KC_GRV , KC_EXLM, KC_AT  , KC_HASH, KC_DLR , KC_PERC,     KC_CIRC, KC_AMPR, KC_ASTR, KC_MINS, KC_EQL , KC_DEL ,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
-        KC_APP , XXXXXXX, KC_LCBR, KC_LPRN, KC_LBRC, XXXXXXX,     KC_LEFT, KC_DOWN, KC_UP  , KC_RGHT, XXXXXXX, KC_BSLS,
+        KC_APP , XXXXXXX, KC_LCBR, KC_LPRN, KC_LBRC, XXXXXXX,     KC_LEFT, KC_DOWN, KC_UP  , KC_RGHT, EX_FEN , KC_BSLS,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
-        _______, XXXXXXX, KC_RCBR, KC_RPRN, KC_RBRC, XXXXXXX,     KC_HOME, KC_PGDN, KC_PGUP, KC_END , XXXXXXX, _______,
+        _______, XXXXXXX, KC_RCBR, KC_RPRN, KC_RBRC, XXXXXXX,     KC_HOME, KC_PGDN, KC_PGUP, KC_END , EX_NYF , _______,
     //`--------+--------+--------+--------+--------+--------/   \--------+--------+--------+--------+--------+--------'
                           MY_CAPS, _______, _______, KC_LGUI,     XXXXXXX, _______, _______, XXXXXXX
     //                  `--------+--------+--------+--------'   `--------+--------+--------+--------'
@@ -85,7 +92,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //,--------+--------+--------+--------+--------+--------.   ,--------+--------+--------+--------+--------+--------.
         _______, RESET  , XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     KC_PSLS, KC_P7  , KC_P8  , KC_P9  , XXXXXXX, _______,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
-        KC_TO0 , XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     KC_PAST, KC_P4  , KC_P5  , KC_P6  , KC_EQL , XXXXXXX,
+        KC_TO0 , XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, GM_INV ,     KC_PAST, KC_P4  , KC_P5  , KC_P6  , KC_EQL , XXXXXXX,
     //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------|
         _______, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     KC_PMNS, KC_P1  , KC_P2  , KC_P3  , KC_PDOT, _______,
     //`--------+--------+--------+--------+--------+--------/   \--------+--------+--------+--------+--------+--------'
@@ -162,11 +169,21 @@ void press_capslock(uint8_t temp_mod){
 
 void oled_task_user(void) {
     if (is_keyboard_master()) {
-        render_layer_state();
-        render_kana_state();
-        render_caps_state();
+        if (!checkGamingMode()) {
+            render_layer_state();
+            render_kana_state();
+            render_caps_state();
+        }
     } else {
         render_logo();
+    }
+}
+
+void matrix_scan_user(void) {
+    if (checkGamingMode()) {
+        if (countMainTimer() > 0) {
+            game_main();
+        }
     }
 }
 
@@ -229,7 +246,56 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_INS: // Insert
         case KC_PAUS: // Pause
         case KC_PSCR: // Print Screen
+        case EX_NYF:
             if (record->event.pressed) { checker_caps = 1; }
+            break;
+        case EX_FEN:
+            // Always 'eisu' when you execute launcher
+            if (record->event.pressed) { kana_state = 0; }
+            break;
+        case GM_INV:
+            // Toggle gaming mode & clear OLED display
+            if (!record->event.pressed) {
+                toggleGamingMode();
+                if (checkGamingMode()) {
+                    readMainTimer();
+                    initGame();
+                    startGame();
+                }
+                clear_display();
+            }
+            break;
+        case KC_LEFT:
+            if (record->event.pressed) {
+                if (checkGamingMode()) {
+                    movePlayer(1); // 1 = isLeft
+                    return false;
+                }
+            }
+            break;
+        case KC_RIGHT:
+            if (record->event.pressed) {
+                if (checkGamingMode()) {
+                    movePlayer(0); // 0 = isRight
+                    return false;
+                }
+            }
+            break;
+        case KC_SPC:
+            if (record->event.pressed) {
+                if (checkGamingMode()) {
+                    firePlayerBeam();
+                    return false;
+                }
+            }
+            break;
+        case KC_ENT:
+        case KC_LGUI:
+            if (record->event.pressed) {
+                if (checkGamingMode()) {
+                    return false;
+                }
+            }
             break;
     }
     return true;
