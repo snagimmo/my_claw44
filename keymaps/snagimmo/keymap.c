@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include "lib/glcdfont.c"
 #include "lib/layers.c"
+#include "font_block.h"
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
@@ -97,41 +98,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 #ifdef OLED_DRIVER_ENABLE
 
-uint8_t rotation_state, buf_blocks, skipped_pixel;
-uint8_t caps_state  = 0;
-uint8_t kana_state  = 0;
-
-void switch_rotation(bool on) {
-    if (on) {
-        rotation_state = 1; // vertical
-        buf_blocks     = OLED_DISPLAY_HEIGHT / OLED_FONT_WIDTH; // 5 (default)
-        skipped_pixel  = OLED_DISPLAY_HEIGHT % OLED_FONT_WIDTH; // 2px (default)
-    } else {
-        rotation_state = 0; // horizontal
-        buf_blocks     = OLED_DISPLAY_WIDTH / OLED_FONT_WIDTH; // 21 (default)
-        skipped_pixel  = OLED_DISPLAY_WIDTH % OLED_FONT_WIDTH; // 2px (default)
-    }
-}
-
-void write_font_block(const unsigned char* p, uint16_t read_index, uint16_t write_index) {
-    unsigned char raw_byte;
-    uint8_t line_number = write_index / buf_blocks; // Get a line number to write
-    for (int i = 0; i < OLED_FONT_WIDTH; i++) {
-        raw_byte = pgm_read_byte(p + (read_index * OLED_FONT_WIDTH + i));
-        oled_write_raw_byte(raw_byte, write_index * OLED_FONT_WIDTH + i + (line_number * skipped_pixel)); // Skip 2*N px every line
-    }
-}
-
-void write_font_blocks(const unsigned char* p, uint8_t row, uint8_t col, uint16_t param_r_idx, uint16_t param_w_idx) {
-    uint16_t read_index, write_index;
-    for (int i = 0; i < row; i++) {
-        read_index  = param_r_idx + (i * 32); // Read blocks per line from OLED font (default 32 blocks)
-        write_index = param_w_idx + (i * buf_blocks); // Write blocks per line to OLED buffer (default 5 or 21 blocks)
-        for (int j = 0; j < col; j++) {
-            write_font_block(p, read_index + j, write_index + j);
-        }
-    }
-}
+static uint8_t caps_state  = 0;
+static uint8_t kana_state  = 0;
 
 void render_layer_state(void) {
     switch (get_highest_layer(layer_state)) {
@@ -163,16 +131,14 @@ void render_kana_state(void) {
 }
 
 void render_logo(void) {
-    switch_rotation(0); // horizontal (logo display)
+    set_rotation(0); // horizontal (logo display)
     write_font_blocks(font, 3, 21, 0x80, 0); // official claw44 logo
-    switch_rotation(1); // vertical (main display)
 }
 
 // The function to render and maintain the CapsLock state on OLED
 bool led_update_user(led_t led_state) {
     if (caps_state != led_state.caps_lock) {
         caps_state = led_state.caps_lock;
-        render_caps_state();
     }
     return false;
 }
@@ -200,6 +166,7 @@ void oled_task_user(void) {
     if (is_keyboard_master()) {
         render_layer_state();
         render_kana_state();
+        render_caps_state();
     } else {
         render_logo();
     }
@@ -207,7 +174,7 @@ void oled_task_user(void) {
 
 oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     if (!is_keyboard_master()) return OLED_ROTATION_180;
-    switch_rotation(1); // vertical (main display)
+    set_rotation(1); // vertical (main display)
     return OLED_ROTATION_270;
 }
 
@@ -281,7 +248,7 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
         case KC_LT2:
             return 10;
         default:
-            return TAPPING_TERM; // 150ms
+            return TAPPING_TERM; // 50ms
     }
 }
 
