@@ -101,7 +101,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
 };
 
-#ifdef OLED_DRIVER_ENABLE
+#ifdef OLED_ENABLE
 
 static uint8_t caps_state  = 0;
 static uint8_t kana_state  = 0;
@@ -169,7 +169,7 @@ void press_capslock(uint8_t temp_mod){
 
 void oled_task_user(void) {
     if (is_keyboard_master()) {
-        if (!checkGamingMode()) {
+        if (!isGamingMode()) {
             render_layer_state();
             render_kana_state();
             render_caps_state();
@@ -180,7 +180,7 @@ void oled_task_user(void) {
 }
 
 void matrix_scan_user(void) {
-    if (checkGamingMode()) {
+    if (isGamingMode()) {
         if (countMainTimer() > 0) {
             game_main();
         }
@@ -257,7 +257,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             // Toggle gaming mode & clear OLED display
             if (!record->event.pressed) {
                 toggleGamingMode();
-                if (checkGamingMode()) {
+                if (isGamingMode()) {
                     readMainTimer();
                     initGame();
                     startGame();
@@ -267,7 +267,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case KC_LEFT:
             if (record->event.pressed) {
-                if (checkGamingMode()) {
+                if (isGamingMode()) {
                     movePlayer(1); // 1 = isLeft
                     return false;
                 }
@@ -275,7 +275,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case KC_RIGHT:
             if (record->event.pressed) {
-                if (checkGamingMode()) {
+                if (isGamingMode()) {
                     movePlayer(0); // 0 = isRight
                     return false;
                 }
@@ -283,7 +283,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             break;
         case KC_SPC:
             if (record->event.pressed) {
-                if (checkGamingMode()) {
+                if (isGamingMode()) {
                     firePlayerBeam();
                     return false;
                 }
@@ -292,7 +292,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case KC_ENT:
         case KC_LGUI:
             if (record->event.pressed) {
-                if (checkGamingMode()) {
+                if (isGamingMode()) {
                     return false;
                 }
             }
@@ -311,4 +311,4 @@ uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-#endif // OLED_DRIVER_ENABLE
+#endif // OLED_ENABLE

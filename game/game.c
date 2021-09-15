@@ -136,7 +136,7 @@ void toggleGamingMode(void) {
     gaming_mode ^= 1;
 }
 
-uint8_t checkGamingMode(void) {
+uint8_t isGamingMode(void) {
     return gaming_mode;
 }
 

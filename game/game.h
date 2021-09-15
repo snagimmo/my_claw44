@@ -6,7 +6,7 @@ extern uint16_t countMainTimer(void);
 extern void movePlayer(uint8_t isLeft);
 extern void firePlayerBeam(void);
 extern void toggleGamingMode(void);
-extern uint8_t checkGamingMode(void);
+extern uint8_t isGamingMode(void);
 extern void startGame(void);
 
 extern void initGame(void);
