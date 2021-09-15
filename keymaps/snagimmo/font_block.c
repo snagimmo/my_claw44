@@ -4,7 +4,7 @@
 static uint8_t buf_blocks = 0;
 static uint8_t offset = 0;
 
-void set_rotation(bool on) {
+void set_rotation(uint8_t on) {
     if (on) {
         // vertical
         buf_blocks = OLED_DISPLAY_HEIGHT / OLED_FONT_WIDTH; // 5 (default)
