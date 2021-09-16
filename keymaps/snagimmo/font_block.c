@@ -47,7 +47,7 @@ void clear_display(void) {
         for (int j = 0; j < buf_blocks; j++) {
             for (int k = 0; k < OLED_FONT_WIDTH; k++) {
                 // Skip 2*N px every line
-                // 0 + i * buf_blocks + j = wIdx + j (L34, L36)
+                // 0 + i * buf_blocks + j = wIdx + j (L36, L38)
                 oled_write_raw_byte(0x00, (i * buf_blocks + j) * OLED_FONT_WIDTH + k + (i * offset));
             }
         }
