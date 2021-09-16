@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include QMK_KEYBOARD_H
 #include <stdio.h>
 #include "lib/glcdfont.c"
-#include "lib/layers.c"
+#include "layers.c"
 #include "font_block.h"
 
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
