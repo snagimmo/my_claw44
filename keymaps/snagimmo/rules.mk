@@ -1,6 +1,7 @@
 OLED_ENABLE = yes
 OLED_DRIVER = SSD1306
 OLED_GAMING = yes
+LTO_ENABLE = yes
 
 ifeq ($(strip $(OLED_ENABLE)), yes)
   SRC += font_block.c
