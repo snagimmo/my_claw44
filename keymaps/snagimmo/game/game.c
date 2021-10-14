@@ -108,7 +108,7 @@ void movePlayer(uint8_t isLeft) {
     }
 
     if (isLeft) {
-        if (0 <= player->pos.x) {
+        if (player->pos.x >= 0) {
             player->pos.x--;
             calcCharWIdx(player);
             moveCharacter(player);
@@ -422,7 +422,7 @@ void game_main(void) {
         }
         // The randomly chosen enemy fires every 350+ milliseconds
         if (countMainTimer() % FIRE_INTERVAL == 0) {
-            if ((enemies + rnd_i)->isAlive && 350 <= timer_elapsed(beam_e_clock)) {
+            if ((enemies + rnd_i)->isAlive && timer_elapsed(beam_e_clock) >= 350) {
                 setBeamRIdx(enemies + rnd_i, enemy_beams);
                 fireBeam(enemies + rnd_i, enemy_beams);
                 beam_e_clock = timer_read();
